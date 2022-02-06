@@ -2,6 +2,8 @@ package com.itheima.service;
 
 
 import com.itheima.pojo.Brand;
+import com.itheima.pojo.PageBean;
+
 import java.util.List;
 
 public interface BrandService {
@@ -17,4 +19,24 @@ public interface BrandService {
      * @param brand
      */
     void add(Brand brand);
+
+    /**
+     *  修改数据
+     * @param brand
+     */
+    void update(Brand brand);
+
+    /**
+     * 批量删除
+     * @param its
+     */
+    void deleteByIds(int[] its);
+
+    /**
+     * 分页查询
+     * @param currentPage   当前页码
+     * @param pageSize      每页显示条数
+     * @return
+     */
+    PageBean<Brand> selectByPage(int currentPage,int pageSize);
 }
