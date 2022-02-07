@@ -27,6 +27,17 @@ public interface BrandService {
     void update(Brand brand);
 
     /**
+     * 根据id查询数据
+     * @param id
+     * @return
+     */
+    Brand selectById(int id);
+    /**
+     * 删除数据
+     * @param id
+     */
+    void deleteById(int id);
+    /**
      * 批量删除
      * @param its
      */
@@ -39,4 +50,13 @@ public interface BrandService {
      * @return
      */
     PageBean<Brand> selectByPage(int currentPage,int pageSize);
+
+    /**
+     * 分页条件查询
+     * @param currentPage
+     * @param pageSize
+     * @param brand
+     * @return
+     */
+    PageBean<Brand> selectByPageAndCondition(int currentPage,int pageSize,Brand brand);
 }

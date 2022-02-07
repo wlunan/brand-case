@@ -31,6 +31,20 @@ public interface BrandMapper {
     void update(Brand brand);
 
     /**
+     * 根据id查询数据
+     * @param id
+     * @return
+     */
+    @Select("select *from tb_brand where id=#{id}")
+    @ResultMap("brandResultMap")
+    Brand selectById(int id);
+    /**
+     * 删除数据
+     * @param id
+     */
+    @Delete("delete from tb_brand where id=#{id}")
+    void deleteById(int id);
+    /**
      * 批量删除
      * @param ids
      */
@@ -50,4 +64,16 @@ public interface BrandMapper {
      */
     @Select("select count(*) from tb_brand")
     int selectTotalCount();
+
+    /**
+     * 条件查询
+     * @param begin
+     * @param size
+     */
+    List<Brand>  selectByPageAndCondition(@Param("begin") int begin,@Param("size") int size,@Param("brand") Brand brand);
+
+    /**
+     * 根据条件查询总条数
+     */
+    int selectTotalCountByCondition(Brand brand);
 }

@@ -53,7 +53,7 @@
             title="新增品牌"
             :visible.sync="dialogVisible"
             width="30%"
-            >
+    >
         <el-form ref="form" :model="brand" label-width="80px">
             <el-form-item label="品牌名称">
                 <el-input v-model="brand.brandName"></el-input>
@@ -90,30 +90,30 @@
             :visible.sync="updateDialogVisible"
             width="30%"
     >
-        <el-form ref="form" :model="brand" label-width="80px">
+        <el-form ref="updateFrom" :model="brandUpdate" label-width="80px">
             <el-form-item label="品牌名称">
-                <el-input v-model="brand.brandName"></el-input>
+                <el-input v-model="brandUpdate.brandName"></el-input>
             </el-form-item>
             <el-form-item label="企业名称">
-                <el-input v-model="brand.companyName"></el-input>
+                <el-input v-model="brandUpdate.companyName"></el-input>
             </el-form-item>
 
             <el-form-item label="排序">
-                <el-input v-model="brand.ordered"></el-input>
+                <el-input v-model="brandUpdate.ordered"></el-input>
             </el-form-item>
 
             <el-form-item label="备注">
-                <el-input type="textarea" v-model="brand.description"></el-input>
+                <el-input type="textarea" v-model="brandUpdate.description"></el-input>
             </el-form-item>
 
             <el-form-item label="状态">
-                <el-switch v-model="brand.status"
+                <el-switch v-model="brandUpdate.status"
                            active-value="1"
                            inactive-value="0"
                 ></el-switch>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="update()">提交</el-button>
+                <el-button type="primary" @click="updateDate()">提交</el-button>
                 <el-button @click="updateDialogVisible = false">取消</el-button>
             </el-form-item>
         </el-form>
@@ -126,6 +126,7 @@
                 style="width: 100%"
                 :row-class-name="tableRowClassName"
                 @selection-change="handleSelectionChange"
+
         >
             <el-table-column
                     type="selection"
@@ -161,12 +162,12 @@
             <el-table-column
                     align="center"
                     label="操作">
-
-                <el-row>
-                    <el-button type="primary" v-on:click="updateDialogVisible = true">修改</el-button>
-                    <el-button type="danger">删除</el-button>
-                </el-row>
-
+                <template slot-scope="scope">
+                    <el-row>
+                        <el-button type="primary" @click="updateButton(scope.row)">修改</el-button>
+                        <el-button type="danger" @click="deleteById(scope.row)">删除</el-button>
+                    </el-row>
+                </template>
             </el-table-column>
 
         </el-table>
@@ -192,6 +193,7 @@
 <script src="js/axios-0.18.0.js"></script>
 
 <script>
+
     new Vue({
         el: "#app",
         mounted() {
@@ -199,7 +201,7 @@
             this.selectAll();
         },
         methods: {
-            selectAll(){
+            selectAll() {
                 /*var _this=this;
                 axios({
                     method:"get",
@@ -208,15 +210,15 @@
                     _this.tableData = resp.data;
                 })*/
                 //查询分页数据
-                var _this=this;
                 axios({
-                    method:"get",
-                    url:"http://localhost:8080/brand-case/brand/selectByPage?currentPage="+_this.currentPage+"&pageSize="+_this.pageSize+""
-                }).then(function (resp) {
+                    method: "post",
+                    url: "http://localhost:8080/brand-case/brand/selectByPageAndCondition?currentPage=" + this.currentPage + "&pageSize=" + this.pageSize + "",
+                    data: this.brand
+                }).then(resp => {
                     //每页显示数据
-                    _this.tableData = resp.data.rows;    //{rows:[],totalCount:11}
+                    this.tableData = resp.data.rows;    //{rows:[],totalCount:11}
                     //数据总条数
-                    _this.totalCount = resp.data.totalCount;
+                    this.totalCount = resp.data.totalCount;
                 })
             },
             tableRowClassName({row, rowIndex}) {
@@ -232,47 +234,26 @@
                 this.multipleSelection = val;
                 console.log(this.multipleSelection)
             },
-            // 查询方法
+            // 条件查询方法
             onSubmit() {
-                console.log(this.brand);
+                // console.log(this.brand);
+                this.selectAll();
             },
             // 添加数据
-            addBrand(){
+            addBrand() {
                 // console.log(this.brand);
-                var _this=this;
+                var _this = this;
                 axios({
-                    method:"post",
-                    url:"http://localhost:8080/brand-case/brand/add",
-                    data:_this.brand
-                }).then(function (resp){
+                    method: "post",
+                    url: "http://localhost:8080/brand-case/brand/add",
+                    data: _this.brand
+                }).then(function (resp) {
                     //添加成功，给出提示，返回原界面
-                    if(resp.data=="success") {
+                    if (resp.data == "success") {
                         _this.dialogVisible = false;
-                            //给出提示
-                            _this.$message({
-                                message: '恭喜你，添加成功',
-                                type: 'success'
-                            });
-                            //重新加载界面
-                        _this.selectAll();
-                    }
-                })
-            },
-            //修改数据
-            update(){
-                //1.获取选中数据的id
-                var _this=this;
-                axios({
-                    method:"post",
-                    url:"http://localhost:8080/brand-case/brand/update",
-                    data:_this.brand
-                }).then(function (resp){
-                    //添加成功，给出提示，返回原界面
-                    if(resp.data=="success") {
-                        _this.updateDialogVisible = false;
                         //给出提示
                         _this.$message({
-                            message: '恭喜你，修改成功',
+                            message: '恭喜你，添加成功',
                             type: 'success'
                         });
                         //重新加载界面
@@ -280,7 +261,77 @@
                     }
                 })
             },
-            deleteByIds: function () {
+            //修改数据的回显数据
+            updateButton(row) {
+                //1.获取选中数据的id
+                this.paramId = row.id;
+                this.updateDialogVisible = true;
+                //回显数据，根据当前获取到的id
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/brand-case/brand/selectById",
+                    data: this.paramId
+                }).then(resp => {
+                    //数据回显给品牌修改模型       不能和查询品牌共用同一个模型 否则就只有一条修改的数据
+                    this.brandUpdate=resp.data
+                })
+            },
+            //修改数据提交数据
+            updateDate() {
+                //进行表单校验
+                this.$refs['updateFrom'].validate((valid => {
+                    if (valid) {
+                        //表单通过验证，提交数据
+                        axios({
+                            method: "post",
+                            url: "http://localhost:8080/brand-case/brand/update",
+                            data: this.brandUpdate
+                        }).then(resp => {
+                            //添加成功，给出提示，返回原界面
+                            if (resp.data == 'success') {
+                                //给出成功提示
+                                this.$message({
+                                    message: '恭喜你，修改成功',
+                                    type: 'success'
+                                });
+                            } else {
+                                //修改失败
+                                this.$message({
+                                    message: '修改失败',
+                                    type: 'success'
+                                });
+                            }
+                        }).finally(()=>{
+                            //不论失败还是成功都执行该操作
+                            this.updateDialogVisible = false;
+                            //重新加载界面
+                            this.selectAll();
+                        })
+                    }
+                }))
+            },
+            //删除单条数据
+            deleteById(row) {
+                //获取当前id,赋值给模型
+                this.paramId = row.id;
+                //发送id到后台
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/brand-case/brand/deleteById",
+                    data: this.paramId
+                }).then(resp => {
+                    if (resp.data == "success") {
+                        this.$message({
+                            message: '恭喜你，删除成功',
+                            type: 'success'
+                        });
+                        //加载界面
+                        this.selectAll();
+                    }
+                })
+            },
+            //批量删除
+            deleteByIds() {
                 /*brandName: "华为"
                 companyName: "华为技术有限公司"
                 description: "万物互联"
@@ -291,18 +342,18 @@
                 */
                 //1.创建id数组，从multipleSelection中获取
                 for (let i = 0; i < this.multipleSelection.length; i++) {
-                  let selecttionElement =  this.multipleSelection[i];
-                  this.selectIds[i]=selecttionElement.id;
+                    let selecttionElement = this.multipleSelection[i];
+                    this.selectIds[i] = selecttionElement.id;
                 }
-                var _this=this;
+                var _this = this;
                 //2.发送ajax请求
                 axios({
                     method: "post",
                     url: "http://localhost:8080/brand-case/brand/deleteByIds",
-                    data:this.selectIds
+                    data: this.selectIds
                 }).then(function (resp) {
                     //删除成功给出提示
-                    if(resp.data=="success") {
+                    if (resp.data == "success") {
                         _this.$message({
                             message: '恭喜你，删除成功',
                             type: 'success'
@@ -322,7 +373,7 @@
             },
             handleCurrentChange(val) {
                 // console.log(`当前页: ${val}`);
-                this.currentPage=val;   //更新当前页码
+                this.currentPage = val;   //更新当前页码
                 this.selectAll();
             }
 
@@ -330,34 +381,44 @@
         data() {
             return {
                 //每页显示的条数
-                pageSize:5,
+                pageSize: 5,
                 // 当前页码
                 currentPage: 1,
                 // 添加数据对话框是否展示的标记
                 dialogVisible: false,
                 //删除数据对话框是否展示的标记
-                updateDialogVisible:false,
+                updateDialogVisible: false,
                 // 品牌模型数据
                 brand: {
                     status: '',
                     brandName: '',
                     companyName: '',
-                    id:"",
-                    ordered:"",
-                    description:""
+                    id: "",
+                    ordered: "",
+                    description: ""
+                },
+                //品牌修改模型
+                brandUpdate: {
+                    status: '',
+                    brandName: '',
+                    companyName: '',
+                    id: "",
+                    ordered: "",
+                    description: ""
                 },
                 // 复选框选中数据集合
                 multipleSelection: [],
                 // 表格数据
                 tableData: [],
                 //批量删除数组模型
-                selectIds:[],
+                selectIds: [],
                 //数据总条数
-                totalCount:1
+                totalCount: 1,
+                //新增或删除选中数据id模型
+                paramId: null
             }
         }
     })
-
 </script>
 
 </body>
